@@ -11,9 +11,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 from pathlib import Path
-
-import dj_database_url
-import django_heroku
+from dotenv import load_dotenv
 import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -52,7 +50,6 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
 
 ROOT_URLCONF = 'shorturl.urls'
@@ -121,20 +118,18 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATIC_URL = '/static/'
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+load_dotenv()
+
 AUTHLIB_OAUTH_CLIENTS = {
     'google': {
-        'client_id': '13640990615-72rfg0hr1f1ujtoloqjrb4n9iro1b3i3.apps.googleusercontent.com',
-        'client_secret': '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',
+        'client_id': os.getenv("CLIENT_ID"),
+        'client_secret': os.getenv("CLIENT_SECRET"),
     }
 }
-
-django_heroku.settings(locals())
