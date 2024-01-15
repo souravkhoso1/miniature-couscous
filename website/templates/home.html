@@ -2,4 +2,56 @@
 {% block title %}{{ title }}{% endblock %}
 {% block body %}
 <h3>Welcome to Short URL</h3>
+<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addNewEntryModal">Add New Entry</button>
+<div class="modal fade" id="addNewEntryModal" tabindex="-1" aria-labelledby="addNewEntryModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="addNewEntryModalLabel">Add New Entry</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form method="POST" action="/add-new-entry/">
+            {% csrf_token %}
+          <div class="mb-3">
+            <label for="shortSlug" class="form-label">Short Slug</label>
+            <input type="text" class="form-control" id="shortSlug" aria-describedby="shortSlugHelp" name="shortSlug">
+            <div id="shortSlugHelp" class="form-text">We'll autofill this if you don't want a custom slug.</div>
+          </div>
+          <div class="mb-3">
+            <label for="originalUrl" class="form-label">Original URL</label>
+            <input type="text" class="form-control" id="originalUrl" name="originalUrl">
+          </div>
+          <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if short_urls %}
+<table class="table">
+  <thead>
+    <tr>
+      <th scope="col">#</th>
+      <th scope="col">Short Slug</th>
+      <th scope="col">Original URL</th>
+      <th scope="col">Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for short_url in short_urls %}
+    <tr>
+      <th scope="row">{{forloop.counter}}</th>
+      <td>{{ short_url.short_slug }}</td>
+      <td>{{ short_url.actual_url }}</td>
+      <td>
+          <button type="button" class="btn btn-primary btn-sm">Edit</button>
+          <button type="button" class="btn btn-danger btn-sm">Delete</button>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endif %}
 {% endblock %}
