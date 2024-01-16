@@ -9,7 +9,6 @@ from django.contrib.auth.models import User
 from django.contrib.auth import login as login_d, logout as logout_d
 from .models import ShortUrl
 
-
 CONF_URL = 'https://accounts.google.com/.well-known/openid-configuration'
 oauth = OAuth()
 oauth.register(
@@ -81,7 +80,7 @@ def auth(request):
     return redirect('/')
 
 
-def logout (request):
+def logout(request):
     logout_d(request)
     return redirect('/')
 
@@ -103,9 +102,9 @@ def add_new_entry(request):
         loggedin_user = request.user
 
         short_url_entry = ShortUrl(
-            short_slug = short_slug,
-            actual_url = original_url,
-            creator_user = loggedin_user
+            short_slug=short_slug,
+            actual_url=original_url,
+            creator_user=loggedin_user
         )
 
         short_url_entry.save()
@@ -113,3 +112,64 @@ def add_new_entry(request):
         request.session['alert_type'] = "alert-success"
         request.session['alert_message'] = "Short URL saved successfully."
         return redirect('/')
+
+
+def update_entry(request, short_url_id):
+    if not request.user.is_authenticated:
+        request.session['set_alert'] = 'true'
+        request.session['alert_type'] = "alert-danger"
+        request.session['alert_message'] = "You're not logged in. Please login first."
+        return redirect('/')
+    elif request.method != "POST":
+        request.session['set_alert'] = 'true'
+        request.session['alert_type'] = "alert-danger"
+        request.session['alert_message'] = "Something went wrong. Please try again."
+        return redirect('/')
+    else:
+        short_url_entry = ShortUrl.objects.filter(id=short_url_id, creator_user=request.user)
+        if short_url_entry.count() != 1:
+            request.session['set_alert'] = 'true'
+            request.session['alert_type'] = "alert-danger"
+            request.session['alert_message'] = "Invalid request. Please try again."
+            return redirect('/')
+        else:
+            short_url_entry = ShortUrl.objects.get(id=short_url_id, creator_user=request.user)
+
+            short_slug = request.POST.get("shortSlug")
+            original_url = request.POST.get("originalUrl")
+            short_url_entry.short_slug = short_slug
+            short_url_entry.actual_url = original_url
+
+            short_url_entry.save()
+            request.session['set_alert'] = 'true'
+            request.session['alert_type'] = "alert-success"
+            request.session['alert_message'] = "Short URL updated successfully."
+            return redirect('/')
+
+
+def delete_entry(request, short_url_id):
+    if not request.user.is_authenticated:
+        request.session['set_alert'] = 'true'
+        request.session['alert_type'] = "alert-danger"
+        request.session['alert_message'] = "You're not logged in. Please login first."
+        return redirect('/')
+    elif request.method != "POST":
+        request.session['set_alert'] = 'true'
+        request.session['alert_type'] = "alert-danger"
+        request.session['alert_message'] = "Something went wrong. Please try again."
+        return redirect('/')
+    else:
+        short_url_entry = ShortUrl.objects.filter(id=short_url_id, creator_user=request.user)
+        if short_url_entry.count() != 1:
+            request.session['set_alert'] = 'true'
+            request.session['alert_type'] = "alert-danger"
+            request.session['alert_message'] = "Invalid request. Please try again."
+            return redirect('/')
+        else:
+            short_url_entry = ShortUrl.objects.get(id=short_url_id, creator_user=request.user)
+            short_url_entry.delete()
+
+            request.session['set_alert'] = 'true'
+            request.session['alert_type'] = "alert-success"
+            request.session['alert_message'] = "Short URL deleted successfully."
+            return redirect('/')

@@ -46,12 +46,42 @@
       <td>{{ short_url.short_slug }}</td>
       <td>{{ short_url.actual_url }}</td>
       <td>
-          <button type="button" class="btn btn-primary btn-sm">Edit</button>
-          <button type="button" class="btn btn-danger btn-sm">Delete</button>
+          <form method="POST" action="/delete-entry/{{ short_url.id }}/">
+            {% csrf_token %}
+            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#updateEntry{{forloop.counter}}Modal">Update</button>
+            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+          </form>
       </td>
     </tr>
     {% endfor %}
   </tbody>
 </table>
+
+{% for short_url in short_urls %}
+<div class="modal fade" id="updateEntry{{forloop.counter}}Modal" tabindex="-1" aria-labelledby="updateEntry{{forloop.counter}}ModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="updateEntry{{forloop.counter}}ModalLabel">Update Entry</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form method="POST" action="/update-entry/{{ short_url.id }}/">
+            {% csrf_token %}
+          <div class="mb-3">
+            <label for="updateEntry{{forloop.counter}}shortSlug" class="form-label">Short Slug</label>
+            <input type="text" class="form-control" id="updateEntry{{forloop.counter}}ShortSlug" name="shortSlug" value="{{ short_url.short_slug }}">
+          </div>
+          <div class="mb-3">
+            <label for="updateEntry{{forloop.counter}}originalUrl" class="form-label">Original URL</label>
+            <input type="text" class="form-control" id="updateEntry{{forloop.counter}}originalUrl" name="originalUrl" value="{{ short_url.actual_url }}">
+          </div>
+          <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endfor %}
 {% endif %}
 {% endblock %}
