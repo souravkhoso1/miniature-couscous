@@ -133,3 +133,5 @@ AUTHLIB_OAUTH_CLIENTS = {
         "client_secret": os.getenv("CLIENT_SECRET"),
     }
 }
+
+CSRF_TRUSTED_ORIGINS =  ['https://*.alturl.online','https://*.127.0.0.1']
