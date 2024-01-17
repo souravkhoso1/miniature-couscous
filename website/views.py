@@ -1,3 +1,4 @@
+import os
 from pprint import pprint
 import json
 
@@ -8,6 +9,7 @@ from authlib.integrations.django_client import OAuth
 from django.contrib.auth.models import User
 from django.contrib.auth import login as login_d, logout as logout_d
 from .models import ShortUrl
+from dotenv import load_dotenv
 
 CONF_URL = "https://accounts.google.com/.well-known/openid-configuration"
 oauth = OAuth()
@@ -49,7 +51,8 @@ def home(request):
 
 
 def login(request):
-    redirect_uri = request.build_absolute_uri(reverse("auth"))
+    load_dotenv()
+    redirect_uri = f'{os.getenv("BASE_URL")}/auth/'
     return oauth.google.authorize_redirect(request, redirect_uri)
 
 
