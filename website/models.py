@@ -9,3 +9,11 @@ class ShortUrl(models.Model):
 
     def __str__(self):
         return self.short_slug
+
+
+class HitCount(models.Model):
+    short_url = models.ForeignKey(ShortUrl, on_delete=models.CASCADE)
+    hit_count = models.PositiveIntegerField()
+
+    def __str__(self):
+        return self.short_url.short_slug

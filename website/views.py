@@ -8,7 +8,7 @@ from django.shortcuts import render, redirect
 from authlib.integrations.django_client import OAuth
 from django.contrib.auth.models import User
 from django.contrib.auth import login as login_d, logout as logout_d
-from .models import ShortUrl
+from .models import ShortUrl, HitCount
 from dotenv import load_dotenv
 from django.conf import settings
 
@@ -43,11 +43,17 @@ def home(request):
 
     if request.user.is_authenticated:
         short_urls = ShortUrl.objects.filter(creator_user=request.user)
+        hit_counts = HitCount.objects.filter(short_url__creator_user=request.user)
     else:
         short_urls = None
+        hit_counts = None
 
     return render(
-        request, "home.html", {"alert_entry": alert_entry, "short_urls": short_urls}
+        request, "home.html", {
+            "alert_entry": alert_entry,
+            "short_urls": short_urls,
+            "hit_counts": hit_counts
+        }
     )
 
 
@@ -102,10 +108,18 @@ def add_new_entry(request):
         loggedin_user = request.user
 
         short_url_entry = ShortUrl(
-            short_slug=short_slug, actual_url=original_url, creator_user=loggedin_user
+            short_slug=short_slug,
+            actual_url=original_url,
+            creator_user=loggedin_user
         )
-
         short_url_entry.save()
+
+        hit_count_entry = HitCount(
+            short_url = short_url_entry,
+            hit_count = 0
+        )
+        hit_count_entry.save()
+
         request.session["set_alert"] = "true"
         request.session["alert_type"] = "alert-success"
         request.session["alert_message"] = "Short URL saved successfully."
@@ -184,7 +198,10 @@ def delete_entry(request, short_url_id):
 def redirect_to(request, short_url_slug):
     short_url_item = ShortUrl.objects.filter(short_slug=short_url_slug)
     if short_url_item.count() == 1:
-        return redirect(ShortUrl.objects.get(short_slug=short_url_slug).actual_url)
+        hit_count_entry = HitCount.objects.get(short_url=short_url_item[0])
+        hit_count_entry.hit_count += 1
+        hit_count_entry.save()
+        return redirect(short_url_item[0].actual_url)
     else:
         request.session["set_alert"] = "true"
         request.session["alert_type"] = "alert-danger"

@@ -22,7 +22,7 @@
           <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
             {% if user.is_authenticated %}
             <li class="nav-item">
-              <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#loginModal">Welcome, {{ user.first_name }}</a>
+              <a class="nav-link">Welcome, {{ user.first_name }}</a>
             </li>
             <li class="nav-item">
               <a class="nav-link" href="/logout">Logout</a>

@@ -36,6 +36,7 @@
       <th scope="col">#</th>
       <th scope="col">Short Slug</th>
       <th scope="col">Original URL</th>
+      <th scope="col">Hit Count</th>
       <th scope="col">Actions</th>
     </tr>
   </thead>
@@ -45,6 +46,13 @@
       <th scope="row">{{forloop.counter}}</th>
       <td>{{ short_url.short_slug }}</td>
       <td>{{ short_url.actual_url }}</td>
+      <td>
+        {% for hit_count in hit_counts %}
+        {% if hit_count.short_url == short_url %}
+        {{ hit_count.hit_count }}
+        {% endif %}
+        {% endfor %}
+      </td>
       <td>
           <form method="POST" action="/delete-entry/{{ short_url.id }}/">
             {% csrf_token %}
