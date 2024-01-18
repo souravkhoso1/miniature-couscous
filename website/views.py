@@ -48,11 +48,15 @@ def home(request):
         short_urls = None
         hit_counts = None
 
+    dotenv_path = os.path.join(settings.BASE_DIR, ".env")
+    load_dotenv(dotenv_path)
+
     return render(
         request, "home.html", {
             "alert_entry": alert_entry,
             "short_urls": short_urls,
-            "hit_counts": hit_counts
+            "hit_counts": hit_counts,
+            "base_url": os.getenv("BASE_URL")
         }
     )
 
