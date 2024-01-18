@@ -10,6 +10,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth import login as login_d, logout as logout_d
 from .models import ShortUrl
 from dotenv import load_dotenv
+from django.conf import settings
 
 CONF_URL = "https://accounts.google.com/.well-known/openid-configuration"
 oauth = OAuth()
@@ -51,7 +52,8 @@ def home(request):
 
 
 def login(request):
-    load_dotenv()
+    dotenv_path = os.path.join(settings.BASE_DIR, ".env")
+    load_dotenv(dotenv_path)
     redirect_uri = f'{os.getenv("BASE_URL")}/auth/'
     return oauth.google.authorize_redirect(request, redirect_uri)
 
