@@ -56,6 +56,7 @@ def home(request):
             "alert_entry": alert_entry,
             "short_urls": short_urls,
             "hit_counts": hit_counts,
+            "title": "Home | Short URL",
             "base_url": os.getenv("BASE_URL")
         }
     )
@@ -200,14 +201,35 @@ def delete_entry(request, short_url_id):
 
 
 def redirect_to(request, short_url_slug):
+    dotenv_path = os.path.join(settings.BASE_DIR, ".env")
+    load_dotenv(dotenv_path)
+
     short_url_item = ShortUrl.objects.filter(short_slug=short_url_slug)
     if short_url_item.count() == 1:
         hit_count_entry = HitCount.objects.get(short_url=short_url_item[0])
         hit_count_entry.hit_count += 1
         hit_count_entry.save()
-        return redirect(short_url_item[0].actual_url)
+        return render(
+            request, "redirect.html", {
+                "base_url": os.getenv("BASE_URL"),
+                "title": "Redirecting | Short URL",
+                "original_url": short_url_item[0].actual_url,
+            }
+        )
     else:
         request.session["set_alert"] = "true"
         request.session["alert_type"] = "alert-danger"
         request.session["alert_message"] = f"Slug '{short_url_slug}' is not available."
         return redirect("/")
+
+    # short_url_item = ShortUrl.objects.filter(short_slug=short_url_slug)
+    # if short_url_item.count() == 1:
+    #     hit_count_entry = HitCount.objects.get(short_url=short_url_item[0])
+    #     hit_count_entry.hit_count += 1
+    #     hit_count_entry.save()
+    #     return redirect(short_url_item[0].actual_url)
+    # else:
+    #     request.session["set_alert"] = "true"
+    #     request.session["alert_type"] = "alert-danger"
+    #     request.session["alert_message"] = f"Slug '{short_url_slug}' is not available."
+    #     return redirect("/")

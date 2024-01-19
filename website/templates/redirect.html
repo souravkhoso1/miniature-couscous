@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block body %}
+<p>You will be redirected to your original URL in 5 seconds</p>
+<p>Click <a href="{{ original_url }}">here</a> if you are not redirected automatically</p>
+<script>
+ $(document).ready(function () {
+    // Handler for .ready() called.
+    window.setTimeout(function () {
+        location.href = "{{ original_url }}";
+    }, 5000);
+});
+</script>
+{% endblock %}
