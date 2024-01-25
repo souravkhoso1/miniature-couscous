@@ -2,6 +2,7 @@
 {% block title %}{{ title }}{% endblock %}
 {% block body %}
 <h3>Welcome to Short URL</h3>
+{% if user.is_authenticated %}
 <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addNewEntryModal">Add New Entry</button>
 <div class="modal fade" id="addNewEntryModal" tabindex="-1" aria-labelledby="addNewEntryModalLabel" aria-hidden="true">
   <div class="modal-dialog">
@@ -28,6 +29,7 @@
     </div>
   </div>
 </div>
+{% endif %}
 
 {% if short_urls %}
 <table class="table">

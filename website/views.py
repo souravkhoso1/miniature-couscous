@@ -1,4 +1,6 @@
 import os
+import random
+import string
 from pprint import pprint
 import json
 
@@ -52,13 +54,15 @@ def home(request):
     load_dotenv(dotenv_path)
 
     return render(
-        request, "home.html", {
+        request,
+        "home.html",
+        {
             "alert_entry": alert_entry,
             "short_urls": short_urls,
             "hit_counts": hit_counts,
             "title": "Home | Short URL",
-            "base_url": os.getenv("BASE_URL")
-        }
+            "base_url": os.getenv("BASE_URL"),
+        },
     )
 
 
@@ -96,108 +100,85 @@ def logout(request):
 
 
 def add_new_entry(request):
-    if not request.user.is_authenticated:
-        request.session["set_alert"] = "true"
-        request.session["alert_type"] = "alert-danger"
-        request.session["alert_message"] = "You're not logged in. Please login first."
+    if not validate_user_authenticated(request):
         return redirect("/")
-    elif request.method != "POST":
-        request.session["set_alert"] = "true"
-        request.session["alert_type"] = "alert-danger"
-        request.session["alert_message"] = "Something went wrong. Please try again."
+    if not validate_request_post_method(request):
         return redirect("/")
-    else:
-        # TODO: Generate random slug if user has not provided
-        short_slug = request.POST.get("shortSlug")
-        original_url = request.POST.get("originalUrl")
-        loggedin_user = request.user
 
-        short_url_entry = ShortUrl(
-            short_slug=short_slug,
-            actual_url=original_url,
-            creator_user=loggedin_user
-        )
-        short_url_entry.save()
+    # TODO: Generate random slug if user has not provided
+    short_slug = request.POST.get("shortSlug")
+    original_url = request.POST.get("originalUrl")
+    loggedin_user = request.user
 
-        hit_count_entry = HitCount(
-            short_url = short_url_entry,
-            hit_count = 0
-        )
-        hit_count_entry.save()
+    short_url_entry = ShortUrl(
+        short_slug=short_slug, actual_url=original_url, creator_user=loggedin_user
+    )
+    short_url_entry.save()
 
-        request.session["set_alert"] = "true"
-        request.session["alert_type"] = "alert-success"
-        request.session["alert_message"] = "Short URL saved successfully."
-        return redirect("/")
+    hit_count_entry = HitCount(short_url=short_url_entry, hit_count=0)
+    hit_count_entry.save()
+
+    request.session["set_alert"] = "true"
+    request.session["alert_type"] = "alert-success"
+    request.session["alert_message"] = "Short URL saved successfully."
+    return redirect("/")
 
 
 def update_entry(request, short_url_id):
-    if not request.user.is_authenticated:
-        request.session["set_alert"] = "true"
-        request.session["alert_type"] = "alert-danger"
-        request.session["alert_message"] = "You're not logged in. Please login first."
+    if not validate_user_authenticated(request):
         return redirect("/")
-    elif request.method != "POST":
+    if not validate_request_post_method(request):
+        return redirect("/")
+
+    short_url_entry = ShortUrl.objects.filter(
+        id=short_url_id, creator_user=request.user
+    )
+    if short_url_entry.count() != 1:
         request.session["set_alert"] = "true"
         request.session["alert_type"] = "alert-danger"
-        request.session["alert_message"] = "Something went wrong. Please try again."
+        request.session["alert_message"] = "Invalid request. Please try again."
         return redirect("/")
     else:
-        short_url_entry = ShortUrl.objects.filter(
+        short_url_entry = ShortUrl.objects.get(
             id=short_url_id, creator_user=request.user
         )
-        if short_url_entry.count() != 1:
-            request.session["set_alert"] = "true"
-            request.session["alert_type"] = "alert-danger"
-            request.session["alert_message"] = "Invalid request. Please try again."
-            return redirect("/")
-        else:
-            short_url_entry = ShortUrl.objects.get(
-                id=short_url_id, creator_user=request.user
-            )
 
-            short_slug = request.POST.get("shortSlug")
-            original_url = request.POST.get("originalUrl")
-            short_url_entry.short_slug = short_slug
-            short_url_entry.actual_url = original_url
+        short_slug = request.POST.get("shortSlug")
+        original_url = request.POST.get("originalUrl")
+        short_url_entry.short_slug = short_slug
+        short_url_entry.actual_url = original_url
 
-            short_url_entry.save()
-            request.session["set_alert"] = "true"
-            request.session["alert_type"] = "alert-success"
-            request.session["alert_message"] = "Short URL updated successfully."
-            return redirect("/")
+        short_url_entry.save()
+        request.session["set_alert"] = "true"
+        request.session["alert_type"] = "alert-success"
+        request.session["alert_message"] = "Short URL updated successfully."
+        return redirect("/")
 
 
 def delete_entry(request, short_url_id):
-    if not request.user.is_authenticated:
-        request.session["set_alert"] = "true"
-        request.session["alert_type"] = "alert-danger"
-        request.session["alert_message"] = "You're not logged in. Please login first."
+    if not validate_user_authenticated(request):
         return redirect("/")
-    elif request.method != "POST":
+    if not validate_request_post_method(request):
+        return redirect("/")
+
+    short_url_entry = ShortUrl.objects.filter(
+        id=short_url_id, creator_user=request.user
+    )
+    if short_url_entry.count() != 1:
         request.session["set_alert"] = "true"
         request.session["alert_type"] = "alert-danger"
-        request.session["alert_message"] = "Something went wrong. Please try again."
+        request.session["alert_message"] = "Invalid request. Please try again."
         return redirect("/")
     else:
-        short_url_entry = ShortUrl.objects.filter(
+        short_url_entry = ShortUrl.objects.get(
             id=short_url_id, creator_user=request.user
         )
-        if short_url_entry.count() != 1:
-            request.session["set_alert"] = "true"
-            request.session["alert_type"] = "alert-danger"
-            request.session["alert_message"] = "Invalid request. Please try again."
-            return redirect("/")
-        else:
-            short_url_entry = ShortUrl.objects.get(
-                id=short_url_id, creator_user=request.user
-            )
-            short_url_entry.delete()
+        short_url_entry.delete()
 
-            request.session["set_alert"] = "true"
-            request.session["alert_type"] = "alert-success"
-            request.session["alert_message"] = "Short URL deleted successfully."
-            return redirect("/")
+        request.session["set_alert"] = "true"
+        request.session["alert_type"] = "alert-success"
+        request.session["alert_message"] = "Short URL deleted successfully."
+        return redirect("/")
 
 
 def redirect_to(request, short_url_slug):
@@ -210,11 +191,13 @@ def redirect_to(request, short_url_slug):
         hit_count_entry.hit_count += 1
         hit_count_entry.save()
         return render(
-            request, "redirect.html", {
+            request,
+            "redirect.html",
+            {
                 "base_url": os.getenv("BASE_URL"),
                 "title": "Redirecting | Short URL",
                 "original_url": short_url_item[0].actual_url,
-            }
+            },
         )
     else:
         request.session["set_alert"] = "true"
@@ -222,14 +205,20 @@ def redirect_to(request, short_url_slug):
         request.session["alert_message"] = f"Slug '{short_url_slug}' is not available."
         return redirect("/")
 
-    # short_url_item = ShortUrl.objects.filter(short_slug=short_url_slug)
-    # if short_url_item.count() == 1:
-    #     hit_count_entry = HitCount.objects.get(short_url=short_url_item[0])
-    #     hit_count_entry.hit_count += 1
-    #     hit_count_entry.save()
-    #     return redirect(short_url_item[0].actual_url)
-    # else:
-    #     request.session["set_alert"] = "true"
-    #     request.session["alert_type"] = "alert-danger"
-    #     request.session["alert_message"] = f"Slug '{short_url_slug}' is not available."
-    #     return redirect("/")
+
+def validate_user_authenticated(request):
+    if not request.user.is_authenticated:
+        request.session["set_alert"] = "true"
+        request.session["alert_type"] = "alert-danger"
+        request.session["alert_message"] = "You're not logged in. Please login first."
+        return False
+    return True
+
+
+def validate_request_post_method(request):
+    if request.method != "POST":
+        request.session["set_alert"] = "true"
+        request.session["alert_type"] = "alert-danger"
+        request.session["alert_message"] = "Something went wrong. Please try again."
+        return False
+    return True

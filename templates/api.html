@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block body %}
+<h2>API</h2>
+{% if api_token %}
+<p class="container">
+    Your API Token: {{ api_token }}
+    <form method="POST" action="{{ base_url }}/api/revoke_token/">
+        {% csrf_token %}
+        <input type="hidden" name="apiToken" value="{{ api_token }}" />
+        <button type="submit" class="btn btn-danger">Revoke Token</button>
+    </form>
+</p>
+{% else %}
+<form method="POST" action="{{ base_url }}/api/generate_token/">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-primary">Generate New Token</button>
+</form>
+{% endif %}
+{% endblock %}
