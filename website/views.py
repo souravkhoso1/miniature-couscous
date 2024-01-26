@@ -105,8 +105,21 @@ def add_new_entry(request):
     if not validate_request_post_method(request):
         return redirect("/")
 
-    # TODO: Generate random slug if user has not provided
-    short_slug = request.POST.get("shortSlug")
+    short_slug = None
+    if "shortSlug" in request.POST and len(request.POST.get("shortSlug")) > 0:
+        short_slug = request.POST.get("shortSlug")
+        if ShortUrl.objects.filter(short_slug=short_slug).count() != 0:
+            request.session[
+                "alert_message"
+            ] = f"Slug {short_slug} is already present in our database. We chose some other slug."
+            short_slug = None
+    if short_slug is None:
+        while True:
+            short_slug = "".join(
+                random.choice(string.ascii_lowercase + string.digits) for _ in range(10)
+            )
+            if ShortUrl.objects.filter(short_slug=short_slug).count() == 0:
+                break
     original_url = request.POST.get("originalUrl")
     loggedin_user = request.user
 
@@ -120,7 +133,8 @@ def add_new_entry(request):
 
     request.session["set_alert"] = "true"
     request.session["alert_type"] = "alert-success"
-    request.session["alert_message"] = "Short URL saved successfully."
+    if "alert_message" not in request.session:
+        request.session["alert_message"] = "Short URL saved successfully."
     return redirect("/")
 
 

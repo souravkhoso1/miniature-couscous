@@ -3,10 +3,21 @@ from django.shortcuts import render, redirect
 import os
 from dotenv import load_dotenv
 from django.conf import settings
+from rest_framework.authentication import TokenAuthentication
 from rest_framework.authtoken.models import Token
-
-
-# Create your views here.
+from rest_framework import status
+from rest_framework.decorators import (
+    api_view,
+    authentication_classes,
+    permission_classes,
+)
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from website.models import ShortUrl, HitCount
+import json
+import random
+import string
+from django.conf import settings
 
 
 def home(request):
@@ -62,6 +73,43 @@ def revoke_token(request):
     token = Token.objects.get(user=request.user)
     token.delete()
     return redirect("/api")
+
+
+@api_view(["POST"])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def shorten(request):
+    input_data = request.data
+    short_slug = None
+    if "slug" in input_data and len(input_data["slug"]) > 0:
+        short_slug = input_data["slug"]
+        if ShortUrl.objects.filter(short_slug=short_slug).count() != 0:
+            short_slug = None
+    if short_slug is None:
+        while True:
+            short_slug = "".join(
+                random.choice(string.ascii_lowercase + string.digits) for _ in range(10)
+            )
+            if ShortUrl.objects.filter(short_slug=short_slug).count() == 0:
+                break
+    original_url = input_data["url"]
+    loggedin_user = request.user
+
+    short_url_entry = ShortUrl(
+        short_slug=short_slug, actual_url=original_url, creator_user=loggedin_user
+    )
+    short_url_entry.save()
+
+    hit_count_entry = HitCount(short_url=short_url_entry, hit_count=0)
+    hit_count_entry.save()
+
+    dotenv_path = os.path.join(settings.BASE_DIR, ".env")
+    load_dotenv(dotenv_path)
+
+    return Response(
+        {"short_url": os.getenv("BASE_URL") + "/" + short_url_entry.short_slug},
+        status=status.HTTP_200_OK,
+    )
 
 
 def validate_user_authenticated(request):

@@ -5,4 +5,5 @@ urlpatterns = [
     path("", views.home),
     path("generate_token/", views.generate_token),
     path("revoke_token/", views.revoke_token),
+    path("v1/shorten/", views.shorten),
 ]
