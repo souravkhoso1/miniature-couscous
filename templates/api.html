@@ -11,6 +11,59 @@
         <button type="submit" class="btn btn-danger">Revoke Token</button>
     </form>
 </p>
+<div class="container">
+    Below curl commands show how you can shorten a link programmatically. If provided slug is not available, we will choose a random slug automatically.
+    <div class="card text-bg-light mb-3">
+      <div class="card-header">Example 1</div>
+      <div class="card-body">
+        <p class="card-text">
+            <pre>
+$ curl --location 'https://alturl.online/api/v1/shorten/' \
+--header 'Authorization: Token {{ api_token }}' \
+--header 'Content-Type: application/json' \
+--data '{
+    "url": "https://google.com"
+}'
+>> { "short_url": "https://alturl.online/XXXXXXXX"}
+            </pre>
+        </p>
+      </div>
+    </div>
+    <div class="card text-bg-light mb-3">
+      <div class="card-header">Example 2</div>
+      <div class="card-body">
+        <p class="card-text">
+            <pre>
+$ curl --location 'https://alturl.online/api/v1/shorten/' \
+--header 'Authorization: Token {{ api_token }}' \
+--header 'Content-Type: application/json' \
+--data '{
+    "slug": "google",
+    "url": "https://google.com"
+}'
+>> { "short_url": "https://alturl.online/google"}
+            </pre>
+        </p>
+      </div>
+    </div>
+    <div class="card text-bg-light mb-3">
+      <div class="card-header">Example 3</div>
+      <div class="card-body">
+        <p class="card-text">
+            <pre>
+$ curl --location 'https://alturl.online/api/v1/shorten/' \
+--header 'Authorization: Token {{ api_token }}' \
+--header 'Content-Type: application/json' \
+--data '{
+    "slug": "google",
+    "url": "https://google.com"
+}'
+>> { "short_url": "https://alturl.online/XXXXXX"}
+            </pre>
+        </p>
+      </div>
+    </div>
+</div>
 {% else %}
 <form method="POST" action="{{ base_url }}/api/generate_token/">
     {% csrf_token %}
